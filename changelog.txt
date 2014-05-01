@@ -1,0 +1,6 @@
+0.1.1
+
+Fixed imcompatibility with PHP 5.0.5 and above
+Fixed dumb page overwrite issue
+ax_reveal_form_fields() now works when there are radio buttons
+Fixed issue with ax_set_checkbox().

@@ -1,0 +1,403 @@
+<style>
+</style>
+
+<h3>AxDocument ax_open_pdf_file($file_path)</h3>
+
+<p>Opens an existing PDF document.</p>
+<p>Example:</p>
+<pre>
+$doc = ax_open_pdf_file("templates/template1.pdf");
+// ... add elements to pages
+ax_save_pdf_file("result/dingo.pdf", $doc);
+</pre>
+<hr>
+
+<h3>boolean ax_save_pdf_file($file_path, &$doc_obj)</h3>
+
+<p>Saves a document to a PDF file.</p>
+<p>Example:</p>
+<pre>
+$doc = ax_open_pdf_file("templates/template1.pdf");
+// ... add elements to pages
+ax_save_pdf_file("result/dingo.pdf", $doc);
+</pre>
+<hr>
+
+<h3>boolean ax_output_pdf_file(&$doc_obj)</h3>
+
+<p>Output a PDF document to the browser. This function works like ax_save_pdf_file(), except the contents are echoed instead of saved.</p>
+<p>Call ax_generate_pdf_contents() if you want the PDF contents returned as a string.</p>
+<p>Example:</p>
+<pre>
+header("Content-type: application/pdf");
+$doc = ax_open_pdf_file("templates/template1.pdf");
+// ... add elements to pages
+ax_output_pdf_file($doc);
+</pre>
+<hr>
+
+<h3>AxDocument ax_create_document()</h3>
+
+<p>Creates an empty document.</p>
+<p>Example:</p>
+<p><code>
+$doc = ax_create_document();
+</code></p>
+<hr>
+
+<h3>AxPage function ax_create_page($width, $height)</h3>
+<p>Creates a new page with the specified dimensions. $width and $height are in inches.</p>
+<p>To add a page to a document, insert the object into AxDocument::$pages, an array.</p>
+<p>Example:</p>
+<pre>
+$page = ax_create_page();
+// ... add elements to page
+$doc->pages[] = $page;
+</pre>
+<hr>
+
+<h3>AxRegion ax_create_rectangular_region($left, $bottom, $right, $top)</h3>
+
+<p>Creates a rectangular region at the given coordinates. $left, $bottom, $right, $top are in inches.</p>
+<p>PDF uses the normal Cartesian coordinates. A larger number means higher up, so $bottom should always be smaller than $top.</p>
+<p>Regions are used to lay out text on a page. The ax_lay_out_text() function requires one as an argument.</p>
+<p>Example:</p>
+<pre>
+$region = ax_create_rectangular_region(1, 1, 7.5, 10);
+$lines = ax_lay_out_text($text, $region, $style);
+</pre>
+<hr>
+
+<h3>AxRegion ax_create_multicolumn_region($left, $bottom, $right, $top, $columns, $gutter)</h3>
+
+<p>Creates a region consisting of a number of columns. $left, $bottom, $right, $top are in inches. They specify the boundary of the region. $columns is the number of columns desired. $gutter specifies the amount of space between each column. It is also in inches.</p>
+<p>Example:</p>
+<pre>
+$region = ax_create_multicolumn_region(1, 1, 7.5, 10, 2, 0.5);
+$lines = ax_lay_out_text($text, $region, $style);
+</pre>
+<p>For more complex text layout, you can manually create an AxRegion object and set its $rectangles property. Coordinates of rectangles are stored in four-element numeric arrays, as points (1/72 of an inch).
+<hr>
+
+<h3>integer ax_add_page_element(&$page, $element)</h3>
+
+<p>Add an element to a page. $page should be an AxPage object. $element can be either AxText, AxImage, AxGraphicBox, or AxGraphicLine.</p>
+<p>Calling this function is equivalent to appending to AxPage::$element directly.</p>
+<p>The return value is always 1--the number of elements added.</p>
+<p>Example:</p>
+<pre>
+$image = ax_load_jpeg_file("dingo.jpg", 1, 1);
+ax_add_page_element($page, $image);
+</pre>
+<hr>
+
+<h3>integer ax_add_page_elements(&$page, $elements)</h3>
+
+<p>Recursively add elements contained in an array to a page. This function is primarily used to add AxText objects created by ax_lay_out_text(), which return them in a array of arrays.</p>
+<p>The return value is the number of elements added.</p>
+<p>Example:</p>
+<pre>
+$lines = ax_lay_out_text($text, $region, $style);
+ax_add_page_elements($page, $lines);
+</pre>
+<hr>
+
+<h3>AxImage ax_load_jpeg_file($file_path, $left, $bottom, $dpi = 72)</h3>
+
+<p>Creates an AxImage object from a JPEG file. $left and $bottom are in iches. They give the position of the lower-left-hand corner of the picture within a page. $dpi is the number of dots per inch. A higher number means a smaller (but sharper) picture in the page. For example, a 360x240 JPEG file is 5" by 3.33" at 72 DPI but only 1.2" by 0.8" at 300 DPI.</p>
+<p>To more accurately control the dimension of the picture, adjust AxImage::$width, AxImage::$height. Note that these two properties are in points (1/72 of an inch), as are AxImage::$left and AxImage::$bottom.</p>
+<p>Example:</p>
+<pre>
+$image = ax_load_jpeg_file("dingo.jpg", 2.5, 2.5, 300);
+$page->elements[] = $image;
+</pre>
+<hr>
+
+<h3>AxImage ax_create_image_from_gd($image, $left, $bottom, $dpi = 72, $quality = 75)</h3>
+
+<p>Creates an AxImage object from a GD image. This function works in the same way as ax_load_jpeg_file(), except the JPEG data stream is dynamically generated through the GD library. $quality controls the level of compression employed. A higher number yields a sharper picture, but larger file size.</p>
+<p>Currently, transparency information is ignored .</p>
+<p>Example:</p>
+<pre>
+$res = imagecreatefromgif("dingo.gif");
+$image = ax_create_image_from_gd($res, 3.2, 2.2, 72, 50);
+$page->elements[] = $image;
+</pre>
+<hr>
+
+<h3>AxStandardFont ax_get_standard_font($font_name, $encoding = 'WinAnsiEncoding')</h3>
+<p>Returns a font object representing one of the 14 fonts built into the Acrobat reader.</p>
+<p>$font_name should be one of the following</p>
+<table border="1">
+	<tr><td>Courier</td><td>Helvetica</td><td>Times-Roman</td><td>Symbol</td></tr>
+	<tr><td>Courier-Bold</td><td>Helvetica-Bold</td><td>Times-Bold</td><td>ZapfDingbats</td></tr>
+	<tr><td>Courier-Oblique</td><td>Helvetica-Oblique</td><td>Times-Italic</td><td></td></tr>
+	<tr><td>Courier-BoldOblique</td><td>Helvetica-BoldOblique</td><td>Times-BoldItalic</td><td></td></tr>
+</table>
+<p>The following text encodings are supported:</p>
+<ul>
+<li>WinAnsiEncoding</li>
+<li>cp1250</li>
+<li>iso-8859-2</li>
+<li>iso-8859-9</li>
+<li>iso-8859-15</li>
+</ul>
+<p>Example:</p>
+<pre>
+$style = new AxTextStyle;
+$style->font = ax_get_standard_font("Helvetica");
+$style->fontSize = 12;
+$text = ax_create_text($text, 1, 7, $style);
+</pre>
+<hr>
+
+<h3>AxType1Font ax_load_type1_font($afm_path, $pfb_path, $encoding = 'WinAnsiEncoding')</h3>
+
+<p>Create a font object from a Type1 font. $afm_path is the path to the font's AFM file, containing its matrics, while $pdf_path points to the PFB, holding the actual glyph data. The font will be embedded into the PDF document.</p>
+<p>The following text encodings are supported:</p>
+<ul>
+<li>WinAnsiEncoding</li>
+<li>cp1250</li>
+<li>iso-8859-2</li>
+<li>iso-8859-9</li>
+<li>iso-8859-15</li>
+</ul>
+<p>Example:</p>
+<pre>
+$style = new AxTextStyle;
+$style->font = ax_load_type1_font("fonts/Baltica.afm", "fonts/Baltica.pfb", "cp1250");
+$style->fontSize = 12;
+$text = ax_create_text($text, 1, 7, $style);
+</pre>
+<hr>
+
+<h3>AxTrueTypeFont ax_load_truetype_font($ttf_path, $encoding = 'WinAnsiEncoding')</h3>
+
+<p>Create a font object from a TrueType font file. The font will be embedded into the PDF file.</p>
+<p></p>
+<ul>
+<li>WinAnsiEncoding</li>
+<li>cp1250</li>
+<li>cp1251</li>
+<li>cp1252</li>
+<li>cp1253</li>
+<li>cp1254</li>
+<li>cp1255</li>
+<li>cp1256</li>
+<li>cp1257</li>
+<li>cp1258</li>
+<li>iso-8859-2</li>
+<li>iso-8859-3</li>
+<li>iso-8859-4</li>
+<li>iso-8859-5</li>
+<li>iso-8859-6</li>
+<li>iso-8859-7</li>
+<li>iso-8859-8</li>
+<li>iso-8859-9</li>
+<li>iso-8859-10</li>
+<li>iso-8859-13</li>
+<li>iso-8859-14</li>
+<li>iso-8859-15</li>
+<li>iso-8859-16</li>
+</ul>
+<p>Example:</p>
+<pre>
+$style = new AxTextStyle;
+$style->font = ax_load_truetype_font("fonts/dingo.ttf", "cp1252");
+$style->fontSize = 12;
+$text = ax_create_text($text, 1, 7, $style);
+</pre>
+<hr>
+
+<h3>AxText ax_create_text($text, $x, $y, $style, $options = AX_LEFT_JUSTIFY | AX_BOTTOM_ALIGN)</h3>
+<p>Create a text object a given position on the page.</p>
+<p>$x and $y are in iches, measured from the left-side and bottom of the page respectively. Flags set in $options control where the text object will be placed relative to this coordinate:</p>
+
+<table border="1">
+	<tr><td>AX_LEFT_JUSTIFY</td><td>Position object to the right of $x</td></tr>
+	<tr><td>AX_CENTER_JUSTIFY</td><td>Center object horizontally at $x</td></tr>
+	<tr><td>AX_RIGHT_JUSTIFY</td><td>Position object to the left of $x</td></tr>
+	<tr><td>AX_BOTTOM_ALIGN</td><td>Position object above $y</td></tr>
+	<tr><td>AX_CENTER_ALIGN</td><td>Center object vertically at $y</td></tr>
+	<tr><td>AX_TOP_ALIGN</td><td>Position object below $y</td></tr>
+</table>
+
+<p>$style defines the appear of the text. It should be an AxTextStyle object, which has the following properties</p>
+
+<table border="1">
+	<tr><td>$font</td>
+	    <td>A font object created by ax_get_standard_font(), ax_load_type1_font(), or ax_load_truetype_font()<br><br>
+		<i>Default = Helvetica, WinAnsiEncoding</i>
+	    </td>
+	</tr>
+	<tr><td>$fontSize</td>
+	    <td>Size of the text in points.<br><br>
+		<i>Default = 12</i>
+	    </td>
+	</tr>
+	<tr><td>$lineSpacing</td>
+	    <td>Controls the spacing between lines. The height of a line is given by lineSpacing * fontSize. A line spacing of 1 means a line would be exactly 12 points below the previous line if the font size is 12, while a spacing of 1.25 would put it 15 points below.<br><br>
+		This property is ignored by ax_create_text(), as no word-wrapping is performed.
+		<i>Default = 1</i>
+	    </td>
+	</tr>
+	<tr><td>$color</td>
+	    <td>Color of the text. An integer indicates a RGB triplet, while a floating point indicates a grayscale level (0.0 = black, 1.0 = white).<br><br>
+		<i>Default = black</i>
+	    </td>
+	</tr>
+	<tr>
+	    <td>$decorations</td>
+	    <td>Specifies underline or strike-through. Possible values are: AX_UNDERLINE, AX_DOUBLE_UNDERLINE, and AX_LINE_THROUGH.<br><br>
+		<i>Default = 0</i>
+	    </td>
+	</tr>
+	<tr><td>$transform</td>
+	    <td>Specifies superscript or subscript. Possible values are AX_NORMAL, AX_SUPERSCRIPT, and AX_SUBSCRIPT.<br><br>
+		<i>Default = AX_NORMAL</i>
+	    </td>
+	</tr>
+	<tr><td>$wordSpacing</td>
+	    <td>Amount of extra space between words. A value of 0.5 means an extra 6 points are added if the font size is 12.<br><br>
+		<i>Default = 0</i>
+	    </td>
+	</tr>
+	<tr><td>$characterSpacing</td>
+		<td>Amount of extra space between characters. A value of 0.25 means an extra 3 points are added if the font size is 12.<br><br>
+		<i>Default = 0</i>
+	    </td>
+	</tr>
+</table>
+
+<p>A text object can only contain a line of text in a single style. For multiline text or text with mixed style, use ax_lay_out_text().</p>
+<p>Example:</p>
+<pre>
+$style = new AxTextStyle;
+$style->font = ax_get_standard_font("Helvetica");
+$style->fontSize = 28;
+$text_obj = ax_create_text("Hello world", 1, 1, $style, AX_CENTER_JUSTIFY | AX_CENTER_ALIGN);
+ax_add_page_element($page, $text_obj);
+</pre>
+<hr>
+
+<h3>array ax_lay_out_text($text, $region, $style, $options = AX_LEFT_JUSTIFY)</h3>
+
+<p>Lay out text in the specified region on the page, creating multiple text objects. Words are added one at a time, wrapping to the beginning of the line as necessary, until space is no longer available.</p>
+
+<p>$region is a AxRegion object from ax_create_rectangular_region() or ax_create_multicolumn_region().</p>
+
+<p>$style can either be an AxTextStyle object or an associative array holding multiple styles. In the latter case, $text is treated as marked-up text. The name of a marked-up tag is used to look up a style in the associative array. When a piece of text is within multiple tags, the tag names are concatenated with a period (.). For text outside of any tag, the zeroth style is used. See ax_create_text() for information about the AxTextStyle object.</p>
+
+<p>Flags in $options control how the text alignment and justification:</p>
+
+<table border="1">
+	<tr><td>AX_LEFT_JUSTIFY</td><td>Align text to the left (default)</td></tr>
+	<tr><td>AX_CENTER_JUSTIFY</td><td>Center text</td></tr>
+	<tr><td>AX_RIGHT_JUSTIFY</td><td>Align text to the right</td></tr>
+	<tr><td>AX_FULL_JUSTIFY</td><td>Expand line and character spacing as necessary to use up available width.</td></tr>
+	<tr><td>AX_BOTTOM_ALIGN</td><td>When a line contains text with different font sizes, align the smaller text with the baseline (default)</td></tr>
+	<tr><td>AX_CENTER_ALIGN</td><td>When a line contains text with different font sizes, center the smaller text vertically</td></tr>
+	<tr><td>AX_TOP_ALIGN</td><td>When a line contains text with different font sizes, align the smaller text at the top of the line</td></tr>
+</table>
+
+<p>By default, the function returns an array of arrays, each of which holds the text objects in a given line (more than one if the text style changes). If the AX_RETURN_LEFTOVER flag is set in $options, then the function returns an array with two elements, with the first element holding the text objects created, and the second element holding the text that didn't fit in the region.</p>
+<p>Use ax_add_page_elements() to add the newly created text objects to a page.</p>
+
+<p>Example 1</p>
+<pre>
+// a simple paragraph of text
+$text = "Hello world ... ";
+$region = ax_create_rectangular_region(1, 1, 7.5, 10);
+$style = new AxTextStyle;
+$style->font = ax_get_standard_font("Times-Roman");
+$style->fontSize = 12;
+$style->lineSpacing = 1.25;
+$lines = ax_lay_out_text($text, $region, $style, AX_FULL_JUSTIFY);
+ax_add_page_elements($page, $lines);
+</pre>
+
+<p>Example 2</p>
+<pre>
+// marked-up text
+$text = "This is a &lt;b&gt;test&lt;/b&gt; and this is only a &lt;i&gt;test&lt;/i&gt; ... ";
+$region = ax_create_rectangular_region(1, 1, 7.5, 10);
+
+$style0 = new AxTextStyle;
+$style0->font = ax_get_standard_font("Times-Roman");
+$style0->fontSize = 10;
+$style0->lineSpacing = 1.25;
+
+$style_b = new AxTextStyle;
+$style_b->font = ax_get_standard_font("Times-Bold");
+
+$style_i = new AxTextStyle;
+$style_i->font = ax_get_standard_font("Times-Italic");
+
+$style_bi = new AxTextStyle;
+$style_bi = ax_get_standard_font("Times-BoldItalic");
+
+$style_array = array(
+	$style0,
+	'b' => $style_b,
+	'i' => $style_i,
+	'b.i' => $style_bi,
+	'i.b' => $style_bi
+);
+
+list($lines, $text) = ax_lay_out_text($text, $region, $style_array, AX_FULL_JUSTIFY | AX_RETURN_LEFTOVER);
+$page = ax_create_page();
+ax_add_page_elements($page, $lines);
+
+</pre>
+
+<hr>
+
+<h3>integer ax_fill_text_field(&$doc_obj, $field_name, $text, $style, $options = AX_LEFT_JUSTIFY)</h3>
+
+<p></p>
+<p>Example:</p>
+<pre>
+</pre>
+<hr>
+
+<h3>ax_set_checkbox(&$doc_obj, $field_name, $value)</h3>
+
+<p></p>
+<p>Example:</p>
+<pre>
+</pre>
+<hr>
+
+<h3>ax_set_radio_button(&$doc_obj, $field_name, $value)</h3>
+
+<p></p>
+<p>Example:</p>
+<pre>
+</pre>
+<hr>
+
+<h3>ax_reveal_form_fields(&$doc_obj)</h3>
+
+<p>Print the name of each form field in the document.</p>
+<p>Example:</p>
+<pre>
+</pre>
+<hr>
+
+<h3>boolean ax_overlay_grid_on_document(&$doc_obj)</h3>
+
+<p>Overlay a quarter-inch grid on each page of a document.</p>
+<p>Example:</p>
+<pre>
+</pre>
+<hr>
+
+<h3>string ax_generate_pdf_contents(&$doc_obj)</h3>
+
+<p>Generates a PDF file, returning the contents in a string.</p>
+<hr>
+
+<h3>AxDocument ax_parse_pdf_contents($data)</h3>
+
+<p>Create an AxDocument object from a PDF file stored in a string.</p>
+<hr>
