@@ -130,7 +130,7 @@ Notice how in the example, you need to manipulate an object property directly. A
 
 The second step in adding text to a PDF document is defining where the text will go. Acrostix provides two functions for this purpose `ax_create_rectangular_region()` and `ax_create_multicolumn_region()`. Both returns an object of the type `AxRegion`, which you would then pass as the second parameter to `ax_lay_out_text()`.
 
-`ax_create_rectangular_region()` creates a simple rectangle. The parameters to the function are: `$left`, `$bottom`, `$right`, `$top`. All four are expressed in inches. An important thing to notice here is the order of the parameters. They are not arranged as coordinates of the upper-left-hand corner followed followed by those of the lower-right-hand corner as typically done in programming. Remembering this will save you a lot of frustration. PDF documents use the true Cartesian coordinate system. The origin is at the lower-left-hand corner. A larger y-coordinate means higher up. Hence `$top` should always be larger than `$bottom`.
+<img src="images/pdf_coord.jpg" align="right">`ax_create_rectangular_region()` creates a simple rectangle. The parameters to the function are: `$left`, `$bottom`, `$right`, `$top`. All four are expressed in inches. An important thing to notice here is the order of the parameters. They are not arranged as coordinates of the upper-left-hand corner followed followed by those of the lower-right-hand corner as typically done in programming. Remembering this will save you a lot of frustration. PDF documents use the true Cartesian coordinate system. The origin is at the lower-left-hand corner. A larger y-coordinate means higher up. Hence `$top` should always be larger than `$bottom`.
 
 `ax_create_multicolumn_region()` creates a region consisting of multiple columns. The function accepts six parameters: `$left`, `$bottom`, `$right`, `$top`, `$columns`, `$gutter`. The first four defines the bounding rectangle; `$columns` is the number of columns; and `$gutter` is the spacing between the columns, expressed in inches. The width of the individual columns is given by:
 
@@ -138,7 +138,7 @@ The second step in adding text to a PDF document is defining where the text will
 (($right - $left) - ($gutter * ($columns - 1))) / $columns;
 ```
 
-In addition to the using two pre-defined functions, you can also create more complicated text lay-out by manipulating an `AxRegion` object directly. A region is just an array of rectangles. A rectangle is represented in `Acrostix` internally as an array with four elements, each a coordinate expressed in points (1/72 of an inch).
+<img src="images/wrap_region.jpg" align="right">In addition to the using two pre-defined functions, you can also create more complicated text lay-out by manipulating an `AxRegion` object directly. A region is just an array of rectangles. A rectangle is represented in `Acrostix` internally as an array with four elements, each a coordinate expressed in points (1/72 of an inch).
 
 Suppose we want to have our text wrapped around an picture. We would want to create a region with three rectangles, as shown on the right. The following example accomplishes this:
 
